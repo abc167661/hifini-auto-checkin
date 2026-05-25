@@ -27,7 +27,7 @@ jobs:
         id: checkin
         shell: bash
         run: |
-          node main1.js
+          node mian1.js
 
       - name: Notify
         if: ${{ always() && env.TELEGRAM_TOKEN && env.TELEGRAM_TO }}
