@@ -50,11 +50,13 @@ async function main() {
   let hifikiList;
 
   try {
-    if (!process.env.ACCOUNTS) {
+    // 这里修改为 HIFIKI
+    if (!process.env.HIFIKI) {
       throw new Error("❌ 未配置账户信息。");
     }
 
-    hifikiList = JSON.parse(process.env.ACCOUNTS);
+    // 这里修改为 HIFIKI
+    hifikiList = JSON.parse(process.env.HIFIKI);
   } catch (error) {
     const message = `❌ ${error.message.includes("JSON") ? "账户信息配置格式错误。" : error.message
       }`;
