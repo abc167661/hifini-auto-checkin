@@ -24,7 +24,7 @@ jobs:
 
       - name: Run Checkin
         id: checkin
-        run: node mainz.js  # 这里已经改成你要的 mainz.js
+        run: node mianz.js  # 这里改成你仓库里真实的 mianz.js
 
       - name: Telegram Notify
         if: ${{ always() && env.TELEGRAM_TOKEN && env.TELEGRAM_TO }}
