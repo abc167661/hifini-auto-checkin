@@ -27,7 +27,7 @@ jobs:
         id: checkin
         shell: bash
         run: |
-          node mian1.js
+          node main1.js
 
       - name: Notify
         if: ${{ always() && env.TELEGRAM_TOKEN && env.TELEGRAM_TO }}
@@ -37,7 +37,7 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           format: markdown
           message: |
-            *HIFINI 自动签到*
+            *hifiki 自动签到*
 
             ${{ steps.checkin.outputs.result  }}
 
