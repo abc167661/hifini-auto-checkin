@@ -3,8 +3,8 @@ import { appendFileSync } from "fs";
 const signPageUrl = "https://www.hifiki.com/sg_sign.htm";
 const responseSuccessCode = "0";
 
-async function checkIn(account) {
-  console.log(`【${account.name}】: 开始签到...`);
+async function checkIn(hifiki) {
+  console.log(`【${hifiki.name}】: 开始签到...`);
 
   const response = await fetch(signPageUrl, {
     method: "POST",
@@ -13,7 +13,7 @@ async function checkIn(account) {
       "X-Requested-With": "XMLHttpRequest",
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-      Cookie: account.cookie,
+      Cookie: hifiki.cookie,
     },
   });
 
@@ -24,11 +24,11 @@ async function checkIn(account) {
   const responseJson = await response.json();
 
   if (responseJson.code === responseSuccessCode) {
-    console.log(`【${account.name}】: 签到成功。`);
+    console.log(`【${hifiki.name}】: 签到成功。`);
     return responseJson.message;
   } else {
     if (responseJson.message === "今天已经签过啦！") {
-      console.log(`【${account.name}】: ${responseJson.message}`);
+      console.log(`【${hifiki.name}】: ${responseJson.message}`);
       return responseJson.message;
     }
     throw new Error(`签到失败: ${responseJson.message}`);
@@ -36,8 +36,8 @@ async function checkIn(account) {
 }
 
 // 处理
-async function processSingleAccount(account) {
-  const checkInResult = await checkIn(account);
+async function processSingleAccount(hifiki) {
+  const checkInResult = await checkIn(hifiki);
 
   return checkInResult;
 }
@@ -47,14 +47,14 @@ function setGitHubOutput(name, value) {
 }
 
 async function main() {
-  let accounts;
+  let hifikiList;
 
   try {
     if (!process.env.ACCOUNTS) {
       throw new Error("❌ 未配置账户信息。");
     }
 
-    accounts = JSON.parse(process.env.ACCOUNTS);
+    hifikiList = JSON.parse(process.env.ACCOUNTS);
   } catch (error) {
     const message = `❌ ${error.message.includes("JSON") ? "账户信息配置格式错误。" : error.message
       }`;
@@ -63,7 +63,7 @@ async function main() {
     process.exit(1);
   }
 
-  const allPromises = accounts.map((account) => processSingleAccount(account));
+  const allPromises = hifikiList.map((hifiki) => processSingleAccount(hifiki));
   const results = await Promise.allSettled(allPromises);
 
   const msgHeader = "\n======== 签到结果 ========\n\n";
@@ -72,7 +72,7 @@ async function main() {
   let hasError = false;
 
   const resultLines = results.map((result, index) => {
-    const accountName = accounts[index].name;
+    const hifikiName = hifikiList[index].name;
 
     const isSuccess = result.status === "fulfilled";
 
@@ -83,7 +83,7 @@ async function main() {
     const icon = isSuccess ? "✅" : "❌";
     const message = isSuccess ? result.value : result.reason.message;
 
-    const line = `${accountName}: ${icon} ${message}`;
+    const line = `${hifikiName}: ${icon} ${message}`;
 
     isSuccess ? console.log(line) : console.error(line);
 
