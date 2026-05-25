@@ -35,10 +35,8 @@ async function checkIn(hifiki) {
   }
 }
 
-// 处理
 async function processSingleAccount(hifiki) {
   const checkInResult = await checkIn(hifiki);
-
   return checkInResult;
 }
 
@@ -47,23 +45,21 @@ function setGitHubOutput(name, value) {
 }
 
 async function main() {
-  let hifikiList;
+  let accounts;
 
   try {
     if (!process.env.ACCOUNTS) {
       throw new Error("❌ 未配置账户信息。");
     }
-
-    hifikiList = JSON.parse(process.env.ACCOUNTS);
+    accounts = JSON.parse(process.env.ACCOUNTS);
   } catch (error) {
-    const message = `❌ ${error.message.includes("JSON") ? "账户信息配置格式错误。" : error.message
-      }`;
+    const message = `❌ ${error.message.includes("JSON") ? "账户信息配置格式错误。" : error.message}`;
     console.error(message);
     setGitHubOutput("result", message);
     process.exit(1);
   }
 
-  const allPromises = hifikiList.map((hifiki) => processSingleAccount(hifiki));
+  const allPromises = accounts.map((account) => processSingleAccount(account));
   const results = await Promise.allSettled(allPromises);
 
   const msgHeader = "\n======== 签到结果 ========\n\n";
@@ -72,31 +68,23 @@ async function main() {
   let hasError = false;
 
   const resultLines = results.map((result, index) => {
-    const hifikiName = hifikiList[index].name;
-
+    const accountName = accounts[index].name;
     const isSuccess = result.status === "fulfilled";
 
-    if (!isSuccess) {
-      hasError = true;
-    }
+    if (!isSuccess) hasError = true;
 
     const icon = isSuccess ? "✅" : "❌";
     const message = isSuccess ? result.value : result.reason.message;
-
-    const line = `${hifikiName}: ${icon} ${message}`;
+    const line = `${accountName}: ${icon} ${message}`;
 
     isSuccess ? console.log(line) : console.error(line);
-
     return line;
   });
 
   const resultMsg = resultLines.join("\n");
-
   setGitHubOutput("result", resultMsg);
 
-  if (hasError) {
-    process.exit(1);
-  }
+  if (hasError) process.exit(1);
 }
 
 main();
