@@ -1,0 +1,32 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: '0 0 */15 * *'  # 每月 1/16/31 号 00:00 UTC 运行（约每 15 天一次）
+  workflow_dispatch:        # 支持手动触发
+
+permissions:
+  contents: write        # 允许推送时间戳提交
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # 更新保活时间戳并提交推送，使仓库每 15 天产生一次提交活动，
+      # 防止 GitHub 因仓库 60 天无活动而自动禁用定时 workflow
+      - name: Update keep-alive timestamp
+        run: |
+          echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > .github/keep-alive.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/keep-alive.txt
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: keep-alive $(date -u +'%Y-%m-%d')"
+            git push
+          fi
